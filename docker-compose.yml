@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - auth-service
+      - contest-service
+      - problem-service
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./services/auth-service
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@auth-db:5432/authdb
+    depends_on:
+      - auth-db
+
+  # Contest Service
+  contest-service:
+    build:
+      context: ./services/contest-service
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@contest-db:5432/contestdb
+    depends_on:
+      - contest-db
+
+  # Problem Service
+  problem-service:
+    build:
+      context: ./services/problem-service
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@problem-db:5432/problemdb
+    depends_on:
+      - problem-db
+
+  # Judge Services
+  judge-standard:
+    build:
+      context: ./services/judge-standard
+    ports:
+      - "8004:8000"
+
+  judge-cyber:
+    build:
+      context: ./services/judge-cyber
+    ports:
+      - "8005:8000"
+
+  judge-ml:
+    build:
+      context: ./services/judge-ml
+    ports:
+      - "8006:8000"
+
+  # Frontend
+  frontend:
+    build:
+      context: ./services/frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+
+  # Databases (stub - replace with actual configs)
+  auth-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=authdb
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+
+  contest-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=contestdb
+    volumes:
+      - contest-db-data:/var/lib/postgresql/data
+
+  problem-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=problemdb
+    volumes:
+      - problem-db-data:/var/lib/postgresql/data
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+
+volumes:
+  auth-db-data:
+  contest-db-data:
+  problem-db-data:
