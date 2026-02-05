@@ -73,6 +73,16 @@ services:
       - "3000:3000"
     depends_on:
       - api-gateway
+    
+  submission-service:
+    build: ./services/submission-service
+    ports:
+      - "8007:8000"  # Map host port 8007 to container port 8000
+    depends_on:
+      - db
+      - rabbitmq
+    env_file:
+      - ./services/submission-service/.env
 
   # Databases (stub - replace with actual configs)
   auth-db:
